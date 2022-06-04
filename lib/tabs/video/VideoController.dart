@@ -11,7 +11,7 @@ class VideoController {
   static Future<UploadTask> uploadVideo(
       List<Media> video, FirebaseStorage storage) async {
     return await Controller.upload(
-        video.first.path, videoDirectory, videoExtension, storage);
+        video.first.path, videoDirectory, videoExtension, storage, null);
   }
 
   static Future<List<Media>?> recordVideo(
@@ -30,8 +30,8 @@ class VideoController {
     await Controller.saveInGallery(recordedVideo.first.path, videoDirectory);
   }
 
-  static void compartilharVideo(Reference ref) async {
-    String path = await ref.getDownloadURL();
+  static void shareVideo(Reference reference) async {
+    String path = await reference.getDownloadURL();
     SocialShare.shareOptions(
       "Compartilhe o video $path entre seu amigos!",
     );

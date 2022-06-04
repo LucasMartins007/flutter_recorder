@@ -6,10 +6,10 @@ import 'package:images_picker/images_picker.dart';
 
 class Controller {
   static Future<UploadTask> upload(String path, String diretory,
-      String extension, FirebaseStorage storage) async {
+      String extension, FirebaseStorage storage, String? name) async {
     File file = File(path);
     try {
-      String ref = '$diretory/${DateTime.now().toString()}.$extension';
+      String ref = '$diretory/${name ?? DateTime.now().toString()}.$extension';
       return storage.ref(ref).putFile(file);
     } on FirebaseException catch (e) {
       throw Exception(e.code);
@@ -29,5 +29,9 @@ class Controller {
         Colors.lightGreen,
       ),
     );
+  }
+
+  static void delete(FirebaseStorage storage, Reference reference) async {
+    await storage.ref(reference.fullPath).delete();
   }
 }

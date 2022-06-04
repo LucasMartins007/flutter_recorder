@@ -5,13 +5,15 @@ class TextFieldWidget extends StatefulWidget {
   final String labelText;
   final String hintText;
   final Function() uploadFunction;
+  final TextInputType textInputType;
 
   const TextFieldWidget({
     Key? key,
     required this.controller,
     required this.labelText,
     required this.hintText,
-    required this.uploadFunction
+    required this.uploadFunction,
+    required this.textInputType,
   }) : super(key: key);
 
   @override
@@ -24,7 +26,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
     return TextFormField(
       controller: widget.controller,
       autofocus: false,
-      keyboardType: TextInputType.number,
+      keyboardType: widget.textInputType,
       decoration: InputDecoration(
         suffixIcon: IconButton(
           icon: const Icon(

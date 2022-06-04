@@ -1,5 +1,6 @@
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:getvideo/Controller.dart';
 import 'package:getvideo/tabs/video/VideoController.dart';
 import 'package:getvideo/widgets/TextFieldWidget.dart';
 import 'package:images_picker/images_picker.dart';
@@ -27,7 +28,7 @@ class _VideosTabsState extends State<VideosTab> {
   }
 
   _loadVideos() async {
-    refs = (await storage.ref("videos").listAll()).items;
+    refs = (await storage.ref(VideoController.videoDirectory).listAll()).items;
     for (var ref in refs) {
       arquivos.add(await ref.getDownloadURL());
     }
@@ -52,7 +53,7 @@ class _VideosTabsState extends State<VideosTab> {
     });
   }
 
-  Future<void> _uploadVideo() async {
+  _uploadVideo() async {
     List<Media>? recordedVideos =
         await VideoController.recordVideo(_timeController);
     if (recordedVideos != null) {
@@ -64,7 +65,17 @@ class _VideosTabsState extends State<VideosTab> {
     }
   }
 
-  SingleChildRenderObjectWidget _showListVideos() {
+  _shareVideo(int index) async => VideoController.shareVideo(refs[index]);
+
+  _deleteVideo(int index) async {
+    Controller.delete(storage, refs[index]);
+    arquivos.removeAt(index);
+    refs.removeAt(index);
+
+    setState(() => {});
+  }
+
+  SingleChildRenderObjectWidget _showVideosList() {
     return loading
         ? const Center(
             child: CircularProgressIndicator(),
@@ -74,34 +85,60 @@ class _VideosTabsState extends State<VideosTab> {
                 child: Text('Não há vídeos gravados ainda.'),
               )
             : SizedBox(
-                height: 200,
+                height: 550,
                 child: ListView.builder(
                   itemCount: arquivos.length,
                   itemBuilder: (BuildContext context, int index) {
                     return ListTile(
-                      leading: const SizedBox(
-                        width: 20,
-                        height: 50,
-                        child: Icon(Icons.video_camera_back),
-                      ),
-                      title: SizedBox(
-                        width: 200,
+                      contentPadding: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
+                      title: Container(
+                        padding: const EdgeInsets.only(left: 20, top: 5, bottom: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[350],
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(10),
+                          ),
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            SizedBox(
-                              width: 150,
-                              child: Text(
-                                refs[index].fullPath,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.only(right: 20),
+                                  child: const SizedBox(
+                                    width: 20,
+                                    height: 50,
+                                    child: Icon(Icons.video_camera_back),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 150,
+                                  child: Text(
+                                    refs[index].fullPath,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
                             ),
-                            IconButton(
-                              onPressed: () =>
-                                  VideoController.compartilharVideo(
-                                      refs[index]),
-                              icon: const Icon(Icons.share),
-                            ),
+                            Row(
+                              children: [
+                                IconButton(
+                                  onPressed: () => _shareVideo(index),
+                                  icon: const Icon(
+                                    Icons.share,
+                                    color: Colors.blueAccent,
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () => _deleteVideo(index),
+                                  icon: const Icon(
+                                    Icons.delete_forever,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ],
+                            )
                           ],
                         ),
                       ),
@@ -129,14 +166,15 @@ class _VideosTabsState extends State<VideosTab> {
                       controller: _timeController,
                       labelText: "Tempo do vídeo",
                       hintText: "Informe o tempo do vídeo",
-                      uploadFunction: () async => await _uploadVideo(),
+                      textInputType: TextInputType.number,
+                      uploadFunction: () => _uploadVideo(),
                     ),
                   ),
                 ],
               ),
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: _showListVideos(),
+              Container(
+                padding: const EdgeInsets.only(left: 10, right: 10, top: 20),
+                child: _showVideosList(),
               ),
             ],
           ),
